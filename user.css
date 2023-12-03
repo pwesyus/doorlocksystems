@@ -1,0 +1,98 @@
+
+
+.fa.fa-users,.fa.fa-clock-o, .fa.fa-calendar-plus-o,
+.fa.fa-sign-out, .fa.fa-cogs, .fa.fa-print
+{
+    margin-right: 10px;
+}
+
+.fa-caret-down {
+  float: right;
+  padding-right: 8px;
+}
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
+.sidenav {
+   height: 100%;
+   width: 250px;
+   position: fixed;
+   z-index: 1;
+   top: 0;
+   left: 0;
+   background-color: #043c04;
+   overflow-x: hidden;
+   padding-top: 20px;
+   list-style-type: none;
+}
+
+.sidenav a, .dropdown-btn {
+  padding: 8px 8px 8px 16px;
+  text-decoration: none;
+  color: white;
+  display: block;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  font-size: 16px;
+}
+.sidenav a:hover {
+  color: white;
+  background-color: #0a5a0a;
+
+}
+.dropdown-btn:hover{
+    color: white;
+   background-color: darkgreen;
+}
+
+.dropdown-container {
+  display: none;
+  background-color: darkgreen;
+  padding-left: 8px;
+}
+
+.dropdown-container a {
+  text-decoration: none;
+  color: white;
+  display: block;
+  padding: 8px 8px 8px 16px;
+  font-size: 16px;
+}
+/* On mouse-over */
+.sidenav a:hover, .dropdown-btn:hover {
+  color: white;
+}
+
+/* Main content */
+.main {
+  margin-left: 200px; /* Same as the width of the sidenav */
+  font-size: 16px; /* Increased text to enable scrolling */
+  padding: 0px 10px;
+}
+
+/* Add an active class to the active dropdown button */
+.active {
+  background-color: darkgreen;
+  color: white;
+}
+
+/* Dropdown container (hidden by default). Optional: add a lighter background color and some left padding to change the design of the dropdown content */
+.dropdown-container {
+  display: none;
+  background-color: darkgreen;
+  padding-left: 8px;
+}
+
+.dropdown-container li {
+    list-style-type: none;
+}
+
+

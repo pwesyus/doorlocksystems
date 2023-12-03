@@ -1,0 +1,12 @@
+*{
+
+  margin: 0;
+  padding: 0;
+  width: 1242px;
+  font-family: Arial;
+}
+h3{
+  top: 5%;
+  position: absolute;
+  font-size: 50;
+}
