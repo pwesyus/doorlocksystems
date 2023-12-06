@@ -8,17 +8,21 @@ file_put_contents('UIDContainer.php', $Write);
 if (!empty($_POST)) {
     // Keep track of post values
     $name = $_POST['name'];
-    $id = $_POST['id'];
     $email = $_POST['email'];
     $mobile = $_POST['mobile'];
     $accesslevel = $_POST['accesslevel'];
 
-    // Check if the ID is empty
-    if (empty($id)) {
-        echo '<script>alert("RFID Number is empty!");</script>';
-        echo '<script>setTimeout(function() { window.location = "registerspecific.php"; }, 100);</script>';
-        exit;
-    }
+    // Check if the ID from the schedule is empty
+    $getSchedIdSql = "SELECT schedid, id FROM schedule WHERE name = ?";
+    $getSchedIdQuery = $conn->prepare($getSchedIdSql);
+    $getSchedIdQuery->bind_param("s", $name);
+    $getSchedIdQuery->execute();
+    $getSchedIdQuery->bind_result($schedid, $idFromSchedule);
+    $getSchedIdQuery->fetch();
+    $getSchedIdQuery->close(); // Close the result set
+
+    // If id from the schedule is empty, use the value from the textarea
+    $id = !empty($idFromSchedule) ? $idFromSchedule : $_POST['getUID'];
 
     // Check if the ID is already registered
     $checkSql = "SELECT COUNT(*) FROM table_the_iot_projects WHERE id = ?";
@@ -27,6 +31,7 @@ if (!empty($_POST)) {
     $checkQuery->execute();
     $checkQuery->bind_result($count);
     $checkQuery->fetch();
+    $checkQuery->close(); // Close the result set
 
     if ($count > 0) {
         echo '<script>alert("ID is already registered!");</script>';
@@ -38,12 +43,15 @@ if (!empty($_POST)) {
         $insertQuery = $conn->prepare($insertSql);
         $insertQuery->bind_param("sssss", $name, $id, $accesslevel, $email, $mobile);
         $insertQuery->execute();
+
+        $sql = "UPDATE schedule SET id=? WHERE name=?";
+    $q = $conn->prepare($sql);
+    $q->execute([$id, $name]);
         header("Location: listofuser.php");
         exit;
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -118,7 +126,7 @@ if (!empty($_POST)) {
                 <div class="control-group">
                     <label class="control-label">RFID No.</label>
                     <div class="controls">
-                        <textarea name="id" id="getUID" placeholder="Please Scan RFID Card" rows="1" cols="1" required readonly></textarea>
+                        <textarea name="getUID" id="getUID" placeholder="Please Scan RFID Card" rows="1" cols="1"  readonly required></textarea>
                     </div>
                 </div>
                 <div class="control-group">

@@ -37,7 +37,7 @@ if (!empty($_POST)) {
              (($day == "Thursday") ? 4 :
              (($day == "Friday") ? 5 :
              (($day == "Saturday") ? 6 :
-             (($day == "Sunday") ? 7 : 0))))));
+             (($day == "Sunday") ? 0 : 0))))));
 
     $sql = "UPDATE schedule SET name=?, scheduledtimein=?, scheduledtimeout=?, day=?, room=?, dayno=? WHERE schedID=?";
     $q = $pdo->prepare($sql);

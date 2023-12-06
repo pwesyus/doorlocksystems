@@ -48,7 +48,7 @@ if (isset($_POST["reset"])) {
         ?>
         <script>
             alert("<?php echo "OTP sent to " . $email; ?>");
-            window.location.replace('otp_verification.php');
+            window.location.replace('LOGIN/otp_verification.php');
         </script>
         <?php
     }

@@ -153,49 +153,36 @@ if (isset($_POST["reset"])) {
         </script>
         <?php
     } else {
-        ?>
-        <script>
-            alert("<?php echo "OTP sent to " . $email; ?>");
-            window.location.replace('otp_verification.php');
-        </script>
-        <?php
+        // Password update logic
+        $token = isset($_SESSION['token']) ? $_SESSION['token'] : null;
+        $Email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
+
+        if ($token && $Email) {
+            $hash = password_hash($psw, PASSWORD_DEFAULT);
+
+            $sql = mysqli_query($conn, "SELECT * FROM login WHERE email='$Email'");
+            $query = mysqli_num_rows($sql);
+            $fetch = mysqli_fetch_assoc($sql);
+
+            $new_pass = $hash;
+            mysqli_query($conn, "UPDATE login SET password='$new_pass' WHERE email='$Email'");
+            ?>
+            <script>
+                window.location.replace("index.php");
+                alert("<?php echo "Your password has been successfully reset"; ?>");
+            </script>
+            <?php
+        } else {
+            ?>
+            <script>
+                alert("<?php echo "Please try again"; ?>");
+            </script>
+            <?php
+        }
     }
-}
-if (isset($_POST["reset"])) {
-    include('../database.php');
-    $psw = $_POST["password"];
-
-    $token = isset($_SESSION['token']) ? $_SESSION['token'] : null;
-    $Email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
-
-    if ($token && $Email) {
-        $hash = password_hash($psw, PASSWORD_DEFAULT);
-
-        $sql = mysqli_query($connect, "SELECT * FROM login WHERE email='$Email'");
-        $query = mysqli_num_rows($sql);
-        $fetch = mysqli_fetch_assoc($sql);
-
-        $new_pass = $hash;
-        mysqli_query($connect, "UPDATE login SET password='$new_pass' WHERE email='$Email'");
-        ?>
-        <script>
-            window.location.replace("index.php");
-            alert("<?php echo "Your password has been successfully reset"; ?>");
-        </script>
-        <?php
-    } else {
-        ?>
-        <script>
-            alert("<?php echo "Please try again"; ?>");
-        </script>
-        <?php
-    }
-
-
-    
-
 }
 ?>
+
 
 <script>
     const toggle = document.getElementById('togglePassword');

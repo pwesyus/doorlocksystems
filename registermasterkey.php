@@ -27,6 +27,7 @@ if (!empty($_POST)) {
     $checkQuery->execute();
     $checkQuery->bind_result($count);
     $checkQuery->fetch();
+    $checkQuery->close(); // Close the result set
 
     if ($count > 0) {
         echo '<script>alert("ID is already registered!");</script>';
@@ -38,6 +39,8 @@ if (!empty($_POST)) {
         $insertQuery = $conn->prepare($insertSql);
         $insertQuery->bind_param("sssss", $name, $id, $accesslevel, $email, $mobile);
         $insertQuery->execute();
+        $insertQuery->close(); // Close the insert query
+
         header("Location: listofuser.php");
         exit;
     }

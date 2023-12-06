@@ -1,5 +1,4 @@
 <?php
-include 'database.php'
 // Receive the JSON data sent by the Arduino
 $jsonData = file_get_contents('php://input');
 
@@ -13,6 +12,19 @@ if ($jsonData) {
         // Extract the values from the JSON data
         $RFIDNumber = $data['RFIDNumber'];
         $userName = $data['UserName']; // Extract the userName field
+        $servername = "localhost";
+        $username = "root";
+        $password = "";
+        $dbname = "nodemcu_rfid_iot_projects";
+
+        // Create a connection to the database
+        $conn = new mysqli($servername, $username, $password, $dbname);
+
+        // Check the connection
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+
         // Modify the SQL query to use the database's current timestamp
         $sql = "INSERT INTO userlogs (Timein, RFIDNumber, name, Timeout) VALUES (NOW(), '$RFIDNumber', '$userName', NULL)";
 
@@ -47,38 +59,49 @@ if ($jsonData) {
                     $accesslevel = $row3['accesslevel'];
 
                     // Check if access level is masterkey
-                    if ($accesslevel === 'MASTERKEY') {
-                        $status = "MASTERKEY";
+                    if ($accesslevel === 'masterkey') {
+                        $status = "Masterkey";
                     } else {
                         // Retrieve schedule based on RFIDNumber
-                        $query2 = "SELECT * FROM schedule WHERE id = '$RFIDNumber' AND room = '$assignedRoom' AND day = '$currentDay'";
-                            $result2 = $conn->query($query2);
+                        $query2 = "SELECT *
+                                   FROM schedule
+                                   WHERE id = '$RFIDNumber' AND room = '$assignedRoom' AND day = '$currentDay'
+                                         AND NOW() BETWEEN scheduledtimein AND scheduledtimeout
+                                         AND NOT EXISTS (
+                                             SELECT 1
+                                             FROM userlogs
+                                             WHERE RFIDNumber = '$RFIDNumber'
+                                             AND Timein IS NOT NULL
+                                             AND Timeout IS NULL
+                                             AND status IS NULL
+                                         )
+                                   ORDER BY scheduledtimein ASC
+                                   LIMIT 1";
+                        $result2 = $conn->query($query2);
+
                         if ($result2 && $result2->num_rows > 0) {
                             // Initialize default values
-                            $scheduledTimeIn = null;
-                            $scheduledTimeOut = null;
-                            $status = "ABSENT";
-                             while ($row2 = $result2->fetch_assoc()) {
-                                $scheduledTimeIn = $row2['scheduledtimein'];
-                                $scheduledTimeOut = $row2['scheduledtimeout'];
+                            $row2 = $result2->fetch_assoc();
+                            $scheduledTimeIn = $row2['scheduledtimein'];
+                            $scheduledTimeOut = $row2['scheduledtimeout'];
 
-                                // Calculate time difference
-                                $timeDifference = strtotime($timeIn) - strtotime($scheduledTimeIn);
+                            // Calculate time difference
+                            $timeDifference = strtotime($timeIn) - strtotime($scheduledTimeIn);
 
-                                // Update status based on conditions
-                                if ($timeDifference >= 0 && $timeDifference <= 600) {
-                                    // On-time (within 5 to 10 minutes)
-                                    $status = "ON-TIME";
-                                    // No need to check further, as the user is already on time for one schedule
-                                    break;
-                                } elseif ($timeDifference > 600) {
-                                    // Late (greater than 10 minutes)
-                                    $status = "LATE";
-                                    // No need to check further, as the user is already late for one schedule
-                                    break;
-                                }
+                            // Update status based on conditions
+                            if ($timeDifference >= 0 && $timeDifference <= 600) {
+                                // On-time (within 5 to 10 minutes)
+                                $status = "On-time";
+                            } elseif ($timeDifference > 600) {
+                                // Late (greater than 10 minutes)
+                                $status = "Late";
+                            } else {
+                                // Default status if not On-time or Late
+                                $status = "Absent";
                             }
-                            
+                        } else {
+                            // Default status if no upcoming schedule is found
+                            $status = "Absent";
                         }
                     }
 

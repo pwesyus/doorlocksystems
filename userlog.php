@@ -10,10 +10,11 @@ if (isset($_GET['addLoA'])) {
     // Get the current day
     $currentDay = date('l');
 
-    // Step 1: Retrieve schedules for room CL8 on the current day
+    // Database connection
     $pdo = new PDO('mysql:host=localhost;dbname=nodemcu_rfid_iot_projects', 'root', '');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
+    // Step 1: Retrieve schedules for room CL8 on the current day
     $sqlSchedules = "SELECT id, name, scheduledtimein, scheduledtimeout FROM schedule WHERE room = 'CL8' AND day = ? AND scheduledtimein < NOW()";
     $qSchedules = $pdo->prepare($sqlSchedules);
     $qSchedules->execute([$currentDay]);
@@ -24,65 +25,82 @@ if (isset($_GET['addLoA'])) {
     $qUserLogs = $pdo->query($sqlUserLogs);
     $userLogs = $qUserLogs->fetchAll(PDO::FETCH_ASSOC);
 
-  // Step 3: Retrieve leave records from labsence table
-$sqlLeaveRecords = "SELECT Name, LAbsenceFrom, LAbsenceTo FROM labsence";
-$qLeaveRecords = $pdo->query($sqlLeaveRecords);
-$leaveRecords = $qLeaveRecords->fetchAll(PDO::FETCH_ASSOC);
+    // Step 3: Retrieve leave records from labsence table
+    $sqlLeaveRecords = "SELECT Name, LAbsenceFrom, LAbsenceTo FROM labsence";
+    $qLeaveRecords = $pdo->query($sqlLeaveRecords);
+    $leaveRecords = $qLeaveRecords->fetchAll(PDO::FETCH_ASSOC);
 
-// Step 4: Find and insert leave and absent records
-foreach ($schedules as $schedule) {
-    $scheduleID = $schedule['id'];
-    $name = $schedule['name'];
+    // Step 4: Find and insert leave and absent records
+    foreach ($schedules as $schedule) {
+        $scheduleID = $schedule['id'];
+        $name = $schedule['name'];
 
-    // Check if there is any entry for the current schedule
-    $entryExists = false;
-    foreach ($userLogs as $userLog) {
-        if ($userLog['name'] == $name) {
-            $entryExists = true;
-            break;
-        }
-    }
-
-    // Check if there is a leave entry for the current schedule
-    $leaveExists = false;
-    foreach ($leaveRecords as $leaveRecord) {
-        if ($leaveRecord['Name'] == $name) {
-            $leaveFrom = strtotime($leaveRecord['LAbsenceFrom']);
-            $leaveTo = strtotime($leaveRecord['LAbsenceTo']);
-            $currentDate = strtotime(date('Y-m-d'));
-
-            if ($currentDate >= $leaveFrom && $currentDate <= $leaveTo) {
-                $leaveExists = true;
+        // Check if there is any entry for the current schedule
+        $entryExists = false;
+        foreach ($userLogs as $userLog) {
+            if ($userLog['name'] == $name) {
+                $entryExists = true;
                 break;
             }
         }
-    }
 
-    // If there is no entry, insert a leave record
-    if (!$entryExists && $leaveExists) {
-        $currentDate = date('Y-m-d'); // Get the current date
-        $sqlInsertLeave = "INSERT INTO userlogs (RFIDNumber, name, timein, timeout, status) VALUES (?, ?, '{$currentDate} 00:00:00', '{$currentDate} 00:00:00', 'LEAVE')";
-        $qInsertLeave = $pdo->prepare($sqlInsertLeave);
+        // Check if there is a leave entry for the current schedule
+        $leaveExists = false;
+        foreach ($leaveRecords as $leaveRecord) {
+            if ($leaveRecord['Name'] == $name) {
+                $leaveFrom = strtotime($leaveRecord['LAbsenceFrom']);
+                $leaveTo = strtotime($leaveRecord['LAbsenceTo']);
+                $currentDate = strtotime(date('Y-m-d'));
 
-        $qInsertLeave->execute([$scheduleID, $name]);
-        echo '<script>alert("Successfully added the leave");</script>';
-        echo '<script>setTimeout(function() { window.location = "userlog.php"; }, 100);</script>';
-    }
-    // If there is no entry, insert an absent record
-    elseif (!$entryExists) {
-        $currentDate = date('Y-m-d'); // Get the current date
-        $sqlInsertAbsent = "INSERT INTO userlogs (RFIDNumber, name, timein, timeout, status) VALUES (?, ?, '{$currentDate} 00:00:00', '{$currentDate} 00:00:00', 'ABSENT')";
-        $qInsertAbsent = $pdo->prepare($sqlInsertAbsent);
+                if ($currentDate >= $leaveFrom && $currentDate <= $leaveTo) {
+                    $leaveExists = true;
+                    break;
+                }
+            }
+        }
 
-        $qInsertAbsent->execute([$scheduleID, $name]);
-        echo '<script>alert("Successfully added the absent");</script>';
-        echo '<script>setTimeout(function() { window.location = "userlog.php"; }, 100);</script>';
-    } else {
-        echo '<script>alert("Absent and Leave of Absence already added");</script>';
-        echo '<script>setTimeout(function() { window.location = "userlog.php"; }, 100);</script>';
+        // If there is no entry, insert a leave record
+        if (!$entryExists && $leaveExists) {
+            $currentDate = date('Y-m-d'); // Get the current date
+            $sqlInsertLeave = "INSERT INTO userlogs (RFIDNumber, name, timein, timeout, status) VALUES (?, ?, ?, ?, 'LEAVE')";
+            $qInsertLeave = $pdo->prepare($sqlInsertLeave);
+
+            // Use the prepared statement to bind parameters and execute the query
+            $qInsertLeave->execute([$scheduleID, $name, "{$currentDate} 00:00:00", "{$currentDate} 00:00:00"]);
+
+            // Check for success or failure
+            if ($qInsertLeave->rowCount() > 0) {
+                echo '<script>alert("Successfully added the leave");</script>';
+            } else {
+                echo '<script>alert("Failed to add leave");</script>';
+            }
+
+            echo '<script>setTimeout(function() { window.location = "userlog.php"; }, 100);</script>';
+        }
+        // If there is no entry, insert an absent record
+        elseif (!$entryExists) {
+            $currentDate = date('Y-m-d'); // Get the current date
+            $sqlInsertAbsent = "INSERT INTO userlogs (RFIDNumber, name, timein, timeout, status) VALUES (?, ?, ?, ?, 'ABSENT')";
+            $qInsertAbsent = $pdo->prepare($sqlInsertAbsent);
+
+            // Use the prepared statement to bind parameters and execute the query
+            $qInsertAbsent->execute([$scheduleID, $name, "{$currentDate} 00:00:00", "{$currentDate} 00:00:00"]);
+
+            // Check for success or failure
+            if ($qInsertAbsent->rowCount() > 0) {
+                echo '<script>alert("Successfully added the absent");</script>';
+            } else {
+                echo '<script>alert("Failed to add absent");</script>';
+            }
+
+            echo '<script>setTimeout(function() { window.location = "userlog.php"; }, 100);</script>';
+        } else {
+            echo '<script>alert("Absent and Leave of Absence already added");</script>';
+            echo '<script>setTimeout(function() { window.location = "userlog.php"; }, 100);</script>';
+        }
     }
 }
-}
+
 
 // Query to retrieve the RFID entry and exit logs for today
 $sql = "SELECT RFIDNumber, name, TIME(Timein) as Timein, TIME(Timeout) as Timeout, status FROM userlogs WHERE DATE(Timein) = CURDATE()";

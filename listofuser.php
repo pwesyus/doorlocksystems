@@ -37,8 +37,8 @@ $totalPages = ceil($totalRows / $rowsPerPage);
     <script src="js/bootstrap.min.js"></script>
     <style>
         .container {
-            width: 79%;
-            margin-left: 250px;
+            width: 80%;
+            margin-left: 245px;
             padding: 20px;
         }
 
@@ -85,7 +85,7 @@ $totalPages = ceil($totalRows / $rowsPerPage);
         }
 
         .btn.btn-danger {
-            margin-right: -15px;
+            margin-right: -5px;
         }
 
         table {
@@ -143,7 +143,7 @@ $totalPages = ceil($totalRows / $rowsPerPage);
 <body>
 
     <div class="container">
-        <h2>List of Users</h2>
+        <h2>User Directory</h2>
         <a class="btn btn-success btn-custom" href="registerspecific.php"> <i class="fa fa-plus"></i> Add Instructor</a>
         <a class="btn btn-primary btn-master" href="registermasterkey.php" style="margin-right: 5px"> <i class="fa fa-plus"></i> Add Masterkey</a>
 

@@ -8,12 +8,7 @@ $currentTime = strtotime("now"); // Get the current time as a Unix timestamp
 $currentDay = date("w", $currentTime);
 $currentTimeString = date("H:i:s", $currentTime);
 
-// Connect to the database
-$conn = new mysqli($servername, $username, $password, $dbname);
 
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
 
 // First Query: Retrieve id and name of users with accesslevel = 'masterkey'
 $firstQuery = "SELECT id, name FROM table_the_iot_projects WHERE accesslevel = 'masterkey'";
