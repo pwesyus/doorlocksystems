@@ -1,6 +1,18 @@
-<?php session_start() ;
+<?php
+session_start();
 include('database.php');
 include 'sidenav.php';
+
+// Check if the user is logged in
+if (!isset($_SESSION['email'])) {
+    // Redirect to the login page or perform other actions for non-logged-in users
+    header('Location:LOGIN/index.php');
+    exit();
+}
+
+// Get the logged-in email
+$loggedInEmail = $_SESSION['email'];
+
 
 if (isset($_POST["reset"])) {
     $psw = $_POST["password"];
@@ -55,7 +67,6 @@ if (isset($_POST["reset"])) {
 }
 ?>
 
-<!------ Include the above in your HEAD tag ---------->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,8 +76,8 @@ if (isset($_POST["reset"])) {
 
     <!-- Fonts -->
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <link rel="stylesheet" href="style.css">
 
     <link rel="icon" href="Favicon.png">
@@ -118,6 +129,14 @@ if (isset($_POST["reset"])) {
                     <div class="card-body">
                         <form action="#" method="POST" name="reset_password">
 
+
+                            <!-- Display logged-in email -->
+                            <div class="form-group row">
+                                <label class="col-md-4 col-form-label text-md-right"> Email</label>
+                                <div class="col-md-6">
+                                    <p class="form-control-plaintext"><?php echo $_SESSION['email']; ?></p>
+                                </div>
+                            </div>
                             <div class="form-group row">
                                 <label for="password" class="col-md-4 col-form-label text-md-right">New Password</label>
                                 <div class="col-md-6">
@@ -132,6 +151,7 @@ if (isset($_POST["reset"])) {
 
                                 </div>
                             </div>
+
 
                             <div class="col-md-6 offset-md-4">
                                 <input type="submit" value="Reset" name="reset">
@@ -153,7 +173,6 @@ if (isset($_POST["reset"])) {
         const confirmPassword = document.getElementById('confirmpassword');
 
         togglePassword.addEventListener('click', function () {
-            
             const type = password.type === 'password' ? 'text' : 'password';
             password.type = type;
             confirmPassword.type = type;
@@ -161,8 +180,6 @@ if (isset($_POST["reset"])) {
         });
     });
 </script>
-
-
 
 </body>
 </html>

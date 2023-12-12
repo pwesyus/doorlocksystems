@@ -7,25 +7,38 @@ if (isset($_POST["verify_otp"])) {
     $stored_otp = $_SESSION['otp'];
 
     if ($user_otp == $stored_otp) {
-        
+        // Correct OTP entered
+
+        // Get the email from the session
+        $email = $_SESSION['email'];
+
+        // Get the new password from the hidden field
+        $new_password = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
+
+        // Update the password in the database
+        mysqli_query($conn, "UPDATE login SET password='$new_password' WHERE email='$email'");
+
+        // Redirect to a success page or perform other actions
         ?>
         <script>
-            alert("Change Password successful!");
-            window.location.replace('index.php');
+            alert("Password changed successfully!");
+            window.location.replace('index.php'); // Change this to the desired page
         </script>
         <?php
-        
+
         exit();
     } else {
         // Incorrect OTP entered
         ?>
         <script>
-            alert("<?php echo "Incorrect OTP. Please try again."; ?>");
+            alert("Incorrect OTP. Please try again.");
         </script>
         <?php
     }
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">

@@ -21,6 +21,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $q = $conn->prepare($sql);
     $q->execute([$name, $email, $mobile, $accesslevel, $id]);
 
+    $sql1 = "UPDATE schedule SET id=? WHERE name=?";
+    $q1 = $conn->prepare($sql1);
+    $q1->execute([$id, $name]);
+
     // Redirect to the list of users or display a success message
     header("Location: listofuser.php");
     exit();

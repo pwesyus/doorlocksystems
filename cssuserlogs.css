@@ -1,0 +1,99 @@
+
+        
+        .container {
+            margin-left: 270px;
+            overflow-x: auto;
+            margin-right: 20px;
+        }
+        .table-container {
+    width: max-content;
+    overflow-x: auto;
+    margin-left: 40px;
+    margin-bottom: 50px;
+}
+
+        table {
+            width: 77%;
+            border-collapse: collapse;
+            
+            margin-bottom: 50px;
+            overflow-x: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            font-weight: bold;
+            background-color: darkgreen;
+            color: #fff;
+        }
+
+        tr {
+            color: #000;
+        }
+
+        .status-absent span,
+        .status-late span,
+        .status-on-time span,
+        .status-masterkey span,
+        .status-leave span {
+            text-transform: uppercase;
+            color: #fff;
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .status-absent span {
+            background-color: red;
+        }
+
+        .status-late span {
+            background-color: orange;
+        }
+
+        .status-on-time span {
+            background-color: green;
+        }
+
+        .status-masterkey span {
+            background-color: blue;
+        }
+
+        .status-leave span {
+            background-color: yellow;
+            color: black;
+        }
+
+        p {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+            margin-left: 270px;
+            margin-right: 380px;
+            margin-bottom: 30px;
+            color: black;
+            display: inline-block;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: bold;
+            display: inline-flex;
+        }
+
+        .btn-leave {
+            float: right;
+            font-size: 16px;
+            background-color: darkgreen;
+            color: #fff;
+            padding: 10px;
+            margin-right: 50px;
+            margin-bottom: 0;
+            font-weight: bold;
+        }

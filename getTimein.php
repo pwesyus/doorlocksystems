@@ -1,4 +1,5 @@
 <?php
+include ('database.php');
 // Receive the JSON data sent by the Arduino
 $jsonData = file_get_contents('php://input');
 
@@ -12,19 +13,6 @@ if ($jsonData) {
         // Extract the values from the JSON data
         $RFIDNumber = $data['RFIDNumber'];
         $userName = $data['UserName']; // Extract the userName field
-        $servername = "localhost";
-        $username = "root";
-        $password = "";
-        $dbname = "nodemcu_rfid_iot_projects";
-
-        // Create a connection to the database
-        $conn = new mysqli($servername, $username, $password, $dbname);
-
-        // Check the connection
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
-        }
-
         // Modify the SQL query to use the database's current timestamp
         $sql = "INSERT INTO userlogs (Timein, RFIDNumber, name, Timeout) VALUES (NOW(), '$RFIDNumber', '$userName', NULL)";
 

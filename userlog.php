@@ -2,7 +2,63 @@
 session_start(); // Start the session
 
 include 'database.php';
+require('fpdf/fpdf.php');
 include 'sidenav.php';
+
+ if (isset($_POST['printPdf'])) {
+
+
+    // Initialize PDF
+    $pdf = new FPDF();
+    $pdf->AddPage();
+    $pdf->SetFont('Arial', 'B', 12);
+
+    // Set background color for header cells
+    $pdf->SetFillColor(0, 100, 0); // Dark green color
+
+    // Set text color for header cells
+    $pdf->SetTextColor(255, 255, 255); // White color
+
+    // Add header cells to the PDF
+    $pdf->Cell(38, 10, 'RFID Number', 1, 0, 'C', true);
+    $pdf->Cell(38, 10, 'Name', 1, 0, 'C', true);
+    $pdf->Cell(38, 10, 'Time In', 1, 0, 'C', true);
+    $pdf->Cell(38, 10, 'Time Out', 1, 0, 'C', true);
+    $pdf->Cell(38, 10, 'Status', 1, 1, 'C', true); // Move to the next line
+
+    // Reset background and text color for data cells
+    $pdf->SetFillColor(255, 255, 255); // White background color
+    $pdf->SetTextColor(0, 0, 0); // Black text color
+
+    // Adjust font size for data cells
+    $pdf->SetFont('Arial', '', 10);
+
+    // Instead of WriteHTML, use MultiCell to add the HTML content
+    $pdf->MultiCell(0, 10, $tableContent);
+
+    // Dynamically generate and store the PDF filename
+    $pdfFileName = 'userlogs_' . date('Ymd_His') . '.pdf';
+
+    // Save the PDF to a file (optional)
+    $pdf->Output($pdfFileName, 'F');
+
+    // Set appropriate headers for PDF content
+    header('Content-Type: application/pdf');
+    header('Content-Transfer-Encoding: Binary');
+    header('Content-Disposition: inline; filename="' . $pdfFileName . '"');
+
+    // Output PDF content
+    readfile($pdfFileName);
+
+    // Optionally, you can delete the saved PDF file if it's not needed anymore
+    unlink($pdfFileName);
+
+} else {
+    echo "Invalid request.";
+}
+
+
+
 
 if (isset($_GET['addLoA'])) {
     $_SESSION['addLoA'] = true;
@@ -122,6 +178,51 @@ if (!$countResult) {
 
 $totalLogsToday = $countResult->fetch_assoc()['totalLogs'];
 
+// Query to retrieve the RFID entry and exit logs
+$sql1 = "SELECT RFIDNumber, name, Timein, Timeout FROM userlogs";
+$result1 = $conn->query($sql1);
+
+$filterDate = "";
+$filterMonth = "";
+$startDate = "";
+$endDate = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  $filterDate = $_POST["filterDate"];
+  $filterMonth = $_POST["filterMonth"];
+  $startDate = $_POST["startDate"];
+  $endDate = $_POST["endDate"];
+
+  $sql1 = "SELECT * FROM `userlogs` WHERE 1=1";
+
+  if (!empty($filterDate)) {
+    $sql1 .= " AND DATE(Timein) = '$filterDate'";
+  }
+
+  if (!empty($filterMonth)) {
+    $month = date('m', strtotime($filterMonth));
+    $sql1 .= " AND MONTH(Timein) = '$month'";
+  }
+
+  if (!empty($startDate) && !empty($endDate)) {
+    $sql1 .= " AND Timein BETWEEN '$startDate' AND '$endDate'";
+  }
+
+  $result = $conn->query($sql1);
+  if (!$result) {
+    die("Error: " . $conn->error);
+}
+}
+
+// Check if the clear button is clicked
+if (isset($_POST['clear'])) {
+  // Reset the filter values
+  $filterDate = "";
+  $filterMonth = "";
+  $startDate = "";
+  $endDate = "";
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -132,98 +233,9 @@ $totalLogsToday = $countResult->fetch_assoc()['totalLogs'];
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <style>
-        
-        .container {
-            margin-left: 270px;
-        }
-
-        table {
-            width: 77%;
-            border-collapse: collapse;
-            margin-left: 270px;
-            margin-bottom: 30px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: center;
-        }
-
-        th {
-            font-weight: bold;
-            background-color: darkgreen;
-            color: #fff;
-        }
-
-        tr {
-            color: #000;
-        }
-
-        .status-absent span,
-        .status-late span,
-        .status-on-time span,
-        .status-masterkey span,
-        .status-leave span {
-            text-transform: uppercase;
-            color: #fff;
-            font-weight: bold;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        .status-absent span {
-            background-color: red;
-        }
-
-        .status-late span {
-            background-color: orange;
-        }
-
-        .status-on-time span {
-            background-color: green;
-        }
-
-        .status-masterkey span {
-            background-color: blue;
-        }
-
-        .status-leave span {
-            background-color: yellow;
-            color: black;
-        }
-
-        p {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 10px;
-            margin-left: 270px;
-            margin-right: 400px;
-            margin-bottom: 30px;
-            color: black;
-            display: inline-block;
-        }
-
-        h1 {
-            font-size: 18px;
-            font-weight: bold;
-            display: inline-flex;
-        }
-
-        .btn-leave {
-            float: right;
-            font-size: 16px;
-            background-color: darkgreen;
-            color: #fff;
-            padding: 10px;
-            margin-right: 20px;
-            margin-bottom: 0;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="cssuserlogs.css">
 </head>
 
 <body>
@@ -233,7 +245,54 @@ $totalLogsToday = $countResult->fetch_assoc()['totalLogs'];
         </form>
         <p><?php echo date("F j, Y"); ?></p>
         <h1>Total Logs for Today: <?php echo $totalLogsToday; ?></h1>
-        <table>
+        <div class="container">
+    <form action="" method="post" class="row mb-3">
+      <div class="col">
+        <label for="filterDate" style="margin-left: -10px;">Filter by Date:</label>
+        <input type="date" name="filterDate" id="filterDate" style="width: 170px;margin-left: -10px; "class="form-control" value="<?php echo $filterDate; ?>">
+      </div>
+
+      <form method="post">
+      <div class="col">
+        <label for="filterMonth" style="margin-left: -50px;">Filter by Month:</label>
+        <select name="filterMonth" style="width: 170px; margin-left: -50px"id="filterMonth" class="form-control">
+          <option value="">All</option>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+          
+        </select>
+
+      </div>
+
+      <div class="col">
+        <label for="startDate" style="margin-left: -90px;">Start Date:</label>
+        <input type="date" style="width: 170px; margin-left: -90px"name="startDate" id="startDate" class="form-control" value="<?php echo $startDate; ?>">
+      </div>
+
+      <div class="col">
+        <label for="endDate"style="margin-left: -130px;">End Date:</label>
+        <input type="date" style="width: 170px;margin-left: -130px "name="endDate" id="endDate" class="form-control" value="<?php echo $endDate; ?>">
+      </div>
+<div class="col">
+        <button type="submit" class="btn btn-danger" style="margin-left: -180px; margin-top: 32px; margin-right: 0px;">Filter</button>
+        <a href="?clear=true" class="btn btn-secondary" style="margin-top: 30px;">Clear</a>
+        <button type="submit" name="printPdf" style="margin-right: 10px; margin-top: 30px;" class="btn btn-dark">Print</button>
+    </div>
+  
+      </form>
+
+
+  <table id="userLogTable">
             <tr>
                 <th>RFID Number</th>
                 <th>Name</th>
@@ -284,6 +343,28 @@ switch ($status) {
             ?>
         </table>
     </div>
+  </div>
+
+  <?php
+        $sql = "SELECT * FROM `userlogs`";
+
+        // Apply filters`
+        if (!empty($filterDate)) {
+          $sql .= " WHERE Timein = '$filterDate'";
+        } elseif (!empty($filterMonth)) {
+          $sql .= " WHERE MONTH(Timein) = '$filterMonth'";
+        } elseif (!empty($startDate) && !empty($endDate)) {
+          $sql .= " WHERE Timein BETWEEN '$startDate' AND '$endDate'";
+        }
+
+        $result = mysqli_query($conn, $sql);
+        ?>
+            </div>
+
+
+
+
+
 </body>
 
 </html>

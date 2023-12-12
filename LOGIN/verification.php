@@ -79,7 +79,7 @@
            </script>
            <?php
         }else{
-            mysqli_query($connect, "UPDATE login SET status = 1 WHERE email = '$email'");
+            mysqli_query($conn, "UPDATE login SET status = 1 WHERE email = '$email'");
             ?>
              <script>
                  alert("Verfiy account done, you may sign in now");

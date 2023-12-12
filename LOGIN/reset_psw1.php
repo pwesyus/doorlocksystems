@@ -109,8 +109,11 @@ include('../database.php');
 </html>
 
 <?php
+
+// Assuming you have set $_SESSION['email'] during the login process
+$email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
+
 if (isset($_POST["reset"])) {
-    include('../database.php');
     $psw = $_POST["password"];
     $confirm_psw = $_POST["confirmpassword"];
 
@@ -123,7 +126,6 @@ if (isset($_POST["reset"])) {
         exit(); // Stop further execution if passwords don't match
     }
 
-    $email = $_SESSION['email'];
     $otp = rand(100000, 999999);
     $_SESSION['otp'] = $otp;
 
@@ -154,34 +156,21 @@ if (isset($_POST["reset"])) {
         <?php
     } else {
         // Password update logic
-        $token = isset($_SESSION['token']) ? $_SESSION['token'] : null;
-        $Email = isset($_SESSION['email']) ? $_SESSION['email'] : null;
+        $hash = password_hash($psw, PASSWORD_DEFAULT);
 
-        if ($token && $Email) {
-            $hash = password_hash($psw, PASSWORD_DEFAULT);
+        // Assuming you have a column named 'password' in your 'login' table
+        mysqli_query($conn, "UPDATE login SET password='$hash' WHERE email='$email'");
 
-            $sql = mysqli_query($conn, "SELECT * FROM login WHERE email='$Email'");
-            $query = mysqli_num_rows($sql);
-            $fetch = mysqli_fetch_assoc($sql);
-
-            $new_pass = $hash;
-            mysqli_query($conn, "UPDATE login SET password='$new_pass' WHERE email='$Email'");
-            ?>
-            <script>
-                window.location.replace("index.php");
-                alert("<?php echo "Your password has been successfully reset"; ?>");
-            </script>
-            <?php
-        } else {
-            ?>
-            <script>
-                alert("<?php echo "Please try again"; ?>");
-            </script>
-            <?php
-        }
+        ?>
+        <script>
+            window.location.replace("index.php");
+            alert("<?php echo "Your password has been successfully reset"; ?>");
+        </script>
+        <?php
     }
 }
 ?>
+
 
 
 <script>

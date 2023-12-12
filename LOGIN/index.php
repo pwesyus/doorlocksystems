@@ -1,37 +1,34 @@
 <?php
-    include('../database.php');
+session_start();
+include('../database.php');
 
-    if(isset($_POST["login"])){
-        $email = mysqli_real_escape_string($conn, trim($_POST['email']));
-        $password = trim($_POST['password']);
+if (isset($_POST["login"])) {
+    $email = mysqli_real_escape_string($conn, trim($_POST['email']));
+    $password = trim($_POST['password']);
 
-        $sql = mysqli_query($conn, "SELECT * FROM login where email = '$email'");
-        $count = mysqli_num_rows($sql);
+    $sql = mysqli_query($conn, "SELECT * FROM login where email = '$email'");
+    $count = mysqli_num_rows($sql);
 
-        if($count > 0){
-            $fetch = mysqli_fetch_assoc($sql);
-            $hashpassword = $fetch["password"];
+    if ($count > 0) {
+        $fetch = mysqli_fetch_assoc($sql);
+        $hashpassword = $fetch["password"];
 
-            if($fetch["status"] == 0){
-                ?>
-                <script>
-                    alert("Please verify email account before login.");
-                </script>
-                <?php
-            } else if(password_verify($password, $hashpassword)){
-                ?>
-                <script>
-                    document.location.href=("../listofuser.php");
-                    alert("Login successful");
-                </script>
-                <?php
-            } else {
-                ?>
-                <script>
-                    alert("Email or password invalid, please try again.");
-                </script>
-                <?php
-            }
+        if ($fetch["status"] == 0) {
+            ?>
+            <script>
+                alert("Please verify email account before login.");
+            </script>
+            <?php
+        } else if (password_verify($password, $hashpassword)) {
+            // Set the user's email in the session
+            $_SESSION['email'] = $email;
+
+            ?>
+            <script>
+                document.location.href = "../listofuser.php";
+                alert("Login successful");
+            </script>
+            <?php
         } else {
             ?>
             <script>
@@ -39,7 +36,14 @@
             </script>
             <?php
         }
+    } else {
+        ?>
+        <script>
+            alert("Email or password invalid, please try again.");
+        </script>
+        <?php
     }
+}
 ?>
 
 

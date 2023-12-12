@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-   ">
+   
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <script src="js/bootstrap.min.js"></script>
 
@@ -21,7 +21,7 @@
         <div class="dropdown-container">
             <a href="scheduletable.php"><i class="fa fa-calendar-plus-o"style="margin-right: 10px"></i>List of Schedule</a>
             <a href="fileleavetable.php"><i class="fa fa-file-o" style="margin-right: 10px"></i>File Leave</a>
-            <a href="holidayevent.php"><i class="fa fa-calendar" style="margin-right: 10px"></i>Holiday / Event</a>
+            
             
         </div>
         <a href="userlog.php"><i class="fa fa-clock-o" style="margin-right: 10px;"></i>Timein/Timeout of ComLab</a>
