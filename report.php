@@ -4,7 +4,6 @@ require('reportbyteacher.php');
 require('reportbyroom.php');
 require('reportbylistofuser.php');
 
-
 $pdo = new PDO('mysql:host=localhost;dbname=nodemcu_rfid_iot_projects', 'root', '');
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -36,53 +35,52 @@ function fetchRooms($pdo)
     return $options;
 }
 
-function fetchSchedules($pdo, $teacherName = null, $room = null)
+function fetchSchedules($pdo, $teacherName = null, $room = null, $day = null)
 {
-    $sql = "SELECT id, name, day, room, scheduledtimein, scheduledtimeout FROM schedule WHERE name = ? OR room = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$teacherName, $room]);
+    if ($day === 'all') {
+        $sql = "SELECT id, name, day, room, scheduledtimein, scheduledtimeout FROM schedule WHERE (name = ? OR room = ?)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$teacherName, $room]);
+    } else {
+        $sql = "SELECT id, name, day, room, scheduledtimein, scheduledtimeout FROM schedule WHERE (name = ? OR room = ?) AND day = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$teacherName, $room, $day]);
+    }
+
     $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     return $schedules;
 }
+
 function fetchUserSchedules($pdo, $selectedAccessLevel)
 {
-    // Initialize the $stmt variable
     $stmt = null;
 
-    // Check the selected access level
     if ($selectedAccessLevel === 'all') {
-        // Fetch all users
         $sql = "SELECT id, name, accesslevel, email, mobile FROM table_the_iot_projects";
         $stmt = $pdo->query($sql);
     } elseif ($selectedAccessLevel === 'masterkey') {
-        // Fetch users with access level 'masterkey'
         $sql = "SELECT id, name, accesslevel, email, mobile FROM table_the_iot_projects WHERE accesslevel = 'masterkey'";
         $stmt = $pdo->query($sql);
     } elseif ($selectedAccessLevel === 'specific') {
-        // Fetch all users for specific access level
         $sql = "SELECT id, name, accesslevel, email, mobile FROM table_the_iot_projects WHERE accesslevel = 'specific'";
         $stmt = $pdo->query($sql);
     }
 
-    // Check if $stmt is not null before calling fetchAll
     if ($stmt) {
-        // Fetch and return user data
         $userData = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $userData;
     } else {
-        return []; // Return an empty array if $stmt is null
+        return [];
     }
 }
 
-
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["teacherName"])) {
     $teacherName = $_POST["teacherName"];
-    // Fetch the teacher ID based on your database structure
     $sql = "SELECT id FROM schedule WHERE name = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$teacherName]);
-    $teacherId = $stmt->fetchColumn(); // Assuming there is only one ID per teacher
+    $teacherId = $stmt->fetchColumn();
     $schedules = fetchSchedules($pdo, $teacherName);
 
     if (!empty($schedules)) {
@@ -98,7 +96,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["teacherName"])) {
     }
 } else if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["room"])) {
     $room = $_POST["room"];
-    $schedules = fetchSchedules($pdo, null, $room);
+    $day = $_POST["day"];
+    $schedules = fetchSchedules($pdo, null, $room, $day);
 
     if (!empty($schedules)) {
         $pdfFileName = generateRoomPDF($room, $schedules);
@@ -109,19 +108,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["teacherName"])) {
         readfile($pdfFileName);
         exit;
     } else {
-        echo "No schedules found for the selected room";
+        echo "No schedules found for the selected room and day";
     }
-}else if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["selectedAccessLevel"])) {
+} else if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["selectedAccessLevel"])) {
     $selectedAccessLevel = $_POST["selectedAccessLevel"];
-
-    // Fetch schedules based on the selected access level
     $userSchedules = fetchUserSchedules($pdo, $selectedAccessLevel);
 
     if (!empty($userSchedules)) {
-        // Generate PDF and exit
         $pdfFileName = generateUsersPDF($userSchedules);
 
-        // Headers are sent only when generating PDF
         header('Content-Type: application/pdf');
         header('Content-Disposition: inline; filename="' . $pdfFileName . '"');
         readfile($pdfFileName);
@@ -130,11 +125,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["teacherName"])) {
         echo "No schedules found for the selected access level";
     }
 }
+
 include('sidenav.php');
 
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Generate Report</title>
@@ -143,43 +141,40 @@ include('sidenav.php');
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-       <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <script src="js/bootstrap.min.js"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <style>
-    body {
-        margin-left: 370px; /* Adjust as needed */
-        width: 80%; /* Adjust as needed */
-        overflow-x: hidden; /* Hide horizontal scrollbar */
-    }
+        body {
+            margin-left: 370px;
+            width: 80%;
+            overflow-x: hidden;
+        }
 
-    #content {
-        margin-top: 25px;
-        padding: 20px;
+        #content {
+            margin-top: 25px;
+            padding: 20px;
 
-    }
+        }
 
-    .btn-dark-green {
-        background-color: #006400; /* Dark Green */
-        color: #ffffff; /* White text */
-    }
+        .btn-dark-green {
+            background-color: #006400;
+            color: #ffffff;
+        }
 
-    select {
-        width: 50%; /* Adjust as needed */
-        display: inline-block;
-        margin-right: 15px;
-    }
+       
 
-    button {
-        display: inline-block;
-        margin-left: 10px;
-        width: 40%; 
-    }
-</style>
+        button {
+            display: inline-block;
+      
+            width: 40%;
+        }
+    </style>
 
 </head>
+
 <body>
 
     <div id="content">
@@ -193,31 +188,43 @@ include('sidenav.php');
                 </div>
                 <div class="col-md-6">
                     <input type="hidden" name="teacherName" id="teacherName" value=""><br><br>
-                    <button type="submit" name="printScheduleBtn" class="btn btn-dark btn-dark-green">Print Teacher Schedule</button><br><br>
+                    <button type="submit" name="printScheduleBtn" class="btn btn-dark btn-dark-green"style="margin-top: -7px;">Print Teacher Schedule</button><br><br>
                 </div>
             </div>
         </form>
 
         <form action="report.php" method="post" id="roomScheduleForm" target="_blank">
-            <div class="form-row">
-                <div class="col-md-6">
-                    <h3>Generate room schedule</h3>
-                    <select name="room" id="roomSelect" class="form-control">
-                        <?php echo fetchRooms($pdo); ?>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <input type="hidden" name="room" id="room" value=""><br><br>
-                    <button type="submit" name="printRoomScheduleBtn" class="btn btn-dark btn-dark-green">Print Room Schedule</button><br><br>
-                </div>
-            </div>
-        </form>
+    <div class="form-row">
+        <div class="col-md-4">
+            <h3>Generate room schedule</h3>
+            <select name="room" id="roomSelect" class="form-control"style="width: 265px;">
+                <?php echo fetchRooms($pdo); ?>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="day" id="daySelect" class="form-control" style="margin-top: 40px; margin-left: -90px;">
+                <option value="" selected disabled>Select Day</option>
+                <option value="all">All Days</option>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <!-- Add more days as needed -->
+            </select>
+        </div>
+        <div class="col-md-6">
+            <input type="hidden" name="room" id="room" value="">
+            <input type="hidden" name="day" id="day" value="">
+            <button type="submit" name="printRoomScheduleBtn" class="btn btn-dark btn-dark-green" style="margin-left: 538px; margin-top:-70px;">Print Room Schedule</button><br>
+        </div>
+    </div>
+</form>
+
 
         <form action="report.php" method="post" id="userScheduleForm" target="_blank">
             <div class="form-row">
                 <div class="col-md-6">
                     <h3>Generate list of users</h3>
                     <select name="selectedAccessLevel" id="accessLevelSelect" class="form-control">
+                        <option value="" selected disabled>Select Users</option>
                         <option value="all">All Users</option>
                         <option value="masterkey">MasterKey Users</option>
                         <option value="specific">Specific Users</option>
@@ -225,8 +232,7 @@ include('sidenav.php');
                 </div>
                 <div class="col-md-6">
                     <input type="hidden" name="selectedAccessLevel" id="selectedAccessLevel" value=""><br><br>
-                    <!-- User Schedule Button -->
-                    <button type="submit" name="printUserScheduleBtn" class="btn btn-dark btn-dark-green">Print List of User</button><br><br>
+                    <button type="submit" name="printUserScheduleBtn" class="btn btn-dark btn-dark-green"style="margin-top: -7px;">Print List of User</button><br><br>
                 </div>
             </div>
         </form>
@@ -234,11 +240,9 @@ include('sidenav.php');
 
     <script>
         $(document).ready(function () {
-            // Handle form submission for Teacher Schedule
             $('#scheduleForm').submit(function () {
                 var selectedTeacher = $('#teacherSelect').val();
                 if (selectedTeacher) {
-                    // Set the value of the hidden input field
                     $('#teacherName').val(selectedTeacher);
                 } else {
                     alert('Please select a teacher before generating the PDF.');
@@ -246,23 +250,28 @@ include('sidenav.php');
                 }
             });
 
-            // Handle form submission for Room Schedule
-            $('#roomScheduleForm').submit(function () {
+             $('#roomScheduleForm').submit(function () {
                 var selectedRoom = $('#roomSelect').val();
+                var selectedDay = $('#daySelect').val();
+
                 if (selectedRoom) {
-                    // Set the value of the hidden input field
                     $('#room').val(selectedRoom);
+
+                    if (selectedDay && selectedDay !== 'all') {
+                        $('#day').val(selectedDay);
+                    } else {
+                        // If "All" is selected or no day is selected, set day to 'all'
+                        $('#day').val('all');
+                    }
                 } else {
                     alert('Please select a room before generating the PDF.');
                     return false;
                 }
             });
 
-            // Handle form submission for User Schedule
             $('#userScheduleForm').submit(function () {
                 var selectedAccessLevel = $('#accessLevelSelect').val();
                 if (selectedAccessLevel) {
-                    // Set the value of the hidden input field
                     $('#selectedAccessLevel').val(selectedAccessLevel);
                 } else {
                     alert('Please select an access level before generating the PDF.');
@@ -272,7 +281,5 @@ include('sidenav.php');
         });
     </script>
 </body>
+
 </html>
-
-</head>
-
