@@ -1,19 +1,13 @@
-
-        
+        body{
+            margin-top: 50px;
+        }
         .container {
-            margin-left: 270px;
-            overflow-x: auto;
+            margin-left: 280px;
             margin-right: 20px;
         }
-        .table-container {
-    width: max-content;
-    overflow-x: auto;
-    margin-left: 40px;
-    margin-bottom: 50px;
-}
 
         table {
-            width: 77%;
+            width: 97%;
             border-collapse: collapse;
             
             margin-bottom: 50px;
@@ -74,9 +68,10 @@
             font-size: 18px;
             font-weight: bold;
             margin-top: 10px;
-            margin-left: 270px;
+            margin-left: 290px;
             margin-right: 380px;
             margin-bottom: 30px;
+
             color: black;
             display: inline-block;
         }
@@ -84,6 +79,7 @@
         h1 {
             font-size: 18px;
             font-weight: bold;
+            margin-top: 40px;
             display: inline-flex;
         }
 
