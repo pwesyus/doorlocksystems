@@ -16,12 +16,11 @@
     <div class="sidenav">
         <img src="images/logo.png" style="width:100px;height:70px; margin-left: 70px; margin-top: 5px; margin-bottom: 20px;">
         
-        <a href="listofuser.php"><i class="fa fa-users"style="margin-right: 10px;"></i>User Directory</a>
-            <a href="scheduletable.php"><i class="fa fa-calendar-plus-o"style="margin-right: 10px"></i>List of Schedule</a>
+        <a href="guardlistofuser.php"><i class="fa fa-users"style="margin-right: 10px;"></i>User Directory</a>
 
-        <a href="userlog.php"><i class="fa fa-clock-o" style="margin-right: 10px;"></i>Timein/Timeout of ComLab</a>
-        <a href="report.php"><i class="fa fa-print" style="margin-right: 10px;"></i>Report</a>
-        <a href="reset_psw.php"><i class="fa fa-cogs" style="margin-right: 10px;"></i>Change Password</a>
+
+        <a href="guarduserlog.php"><i class="fa fa-clock-o" style="margin-right: 10px;"></i>Timein/Timeout of ComLab</a>
+        <a href="guardreset_psw.php"><i class="fa fa-cogs" style="margin-right: 10px;"></i>Change Password</a>
         <a class="right" href="login/index.php"><i class="fa fa-sign-out" style="margin-right: 10px;"></i>Logout</a>
     </div>
 </body>

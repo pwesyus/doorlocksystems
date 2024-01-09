@@ -6,7 +6,7 @@ if (isset($_POST["login"])) {
     $email = mysqli_real_escape_string($conn, trim($_POST['email']));
     $password = trim($_POST['password']);
 
-    $sql = mysqli_query($conn, "SELECT * FROM login where email = '$email'");
+    $sql = mysqli_query($conn, "SELECT * FROM login WHERE email = '$email'");
     $count = mysqli_num_rows($sql);
 
     if ($count > 0) {
@@ -16,35 +16,42 @@ if (isset($_POST["login"])) {
         if ($fetch["status"] == 0) {
             ?>
             <script>
-                alert("Please verify email account before login.");
+                alert("Please verify your email account before login.");
             </script>
             <?php
         } else if (password_verify($password, $hashpassword)) {
             // Set the user's email in the session
             $_SESSION['email'] = $email;
 
-            ?>
-            <script>
-                document.location.href = "../listofuser.php";
-                alert("Login successful");
-            </script>
-            <?php
+            // Redirect based on the user's email
+            if ($email == 'admn.doorlock@gmail.com') {
+                header("Location: ../listofuser.php");
+            } elseif ($email == 'guards.doorlock@gmail.com') {
+                header("Location: ../guardlistofuser.php");
+            } else {
+                ?>
+                <script>
+                    alert("Unknown user email. Please contact the administrator.");
+                </script>
+                <?php
+            }
         } else {
             ?>
             <script>
-                alert("Email or password invalid, please try again.");
+                alert("Email or password is invalid. Please try again.");
             </script>
             <?php
         }
     } else {
         ?>
         <script>
-            alert("Email or password invalid, please try again.");
+            alert("Email or password is invalid. Please try again.");
         </script>
         <?php
     }
 }
 ?>
+
 
 
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">

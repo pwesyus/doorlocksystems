@@ -56,8 +56,10 @@ if ($result === false) {
                 $name = $row['0'];
                 $scheduledtimein = $row['1'];
                 $scheduledtimeout = $row['2'];
-                $room = $row['3'];
-                $day = $row['4'];
+                $subject = $row['3'];
+                $section = $row['4'];
+                $room = $row['5'];
+                $day = $row['6'];
 
                 // Check for overlap
                 $overlapQuery = "SELECT * FROM schedule 
@@ -74,8 +76,8 @@ if ($result === false) {
                 }
 
                 // If no overlap, insert the schedule
-                $studentQuery = "INSERT INTO schedule (name, scheduledtimein, scheduledtimeout, room, day) 
-                                VALUES ('$name','$scheduledtimein','$scheduledtimeout','$room','$day')";
+                $studentQuery = "INSERT INTO schedule (name, scheduledtimein, scheduledtimeout, section, room, subject,day) 
+                                VALUES ('$name','$scheduledtimein','$scheduledtimeout', '$section','$room','$subject','$day')";
                 $result = mysqli_query($conn, $studentQuery);
 
                 $msg = true;
@@ -116,7 +118,7 @@ if ($result === false) {
             width: 79%;
             margin-left: 250px;
             padding: 20px;
-            margin-top: -10px;
+            margin-top: 10px;
         }
 
         .container h2 {
@@ -214,6 +216,8 @@ if ($result === false) {
                         <th class="text-center">Name</th>
                         <th class="text-center">Time in</th>
                         <th class="text-center">Time out</th>
+                        <th class="text-center">Subject</th>
+                        <th class="text-center">Section</th>
                         <th class="text-center">Room</th>
                         <th class="text-center">Day</th>
                         <th class="text-center action-column">Action</th>
@@ -226,6 +230,8 @@ if ($result === false) {
                         echo '<td>' . $row['name'] . '</td>';
                         echo '<td>' . $row['scheduledtimein'] . '</td>';
                         echo '<td>' . $row['scheduledtimeout'] . '</td>';
+                        echo '<td>' . $row['subject'] . '</td>';
+                        echo '<td>' . $row['section'] . '</td>';
                         echo '<td>' . $row['room'] . '</td>';
                         echo '<td>' . $row['day'] . '</td>';
 
@@ -250,5 +256,6 @@ if ($result === false) {
         </div>
     </div>
 </body>
+
 
 </html>

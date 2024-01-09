@@ -1,7 +1,7 @@
 <?php
 session_start();
 include('database.php');
-include 'sidenav.php';
+include 'guardsidenav.php';
 
 ?>
 <?php

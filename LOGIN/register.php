@@ -1,12 +1,13 @@
 <?php session_start(); ?>
 <?php
-    include('connect/connection.php');
+    include('../database.php');
+    require '../Mail/phpmailer/PHPMailerAutoload.php';
 
     if(isset($_POST["register"])){
         $email = $_POST["email"];
         $password = $_POST["password"];
 
-        $check_query = mysqli_query($connect, "SELECT * FROM login where email ='$email'");
+        $check_query = mysqli_query($conn, "SELECT * FROM login where email ='$email'");
         $rowCount = mysqli_num_rows($check_query);
 
         if(!empty($email) && !empty($password)){
@@ -19,7 +20,7 @@
             }else{
                 $password_hash = password_hash($password, PASSWORD_BCRYPT);
 
-                $result = mysqli_query($connect, "INSERT INTO login (email, password, status) VALUES ('$email', '$password_hash', 0)");
+                $result = mysqli_query($conn, "INSERT INTO login (email, password, status, access) VALUES ('$email', '$password_hash', 0, 'guard')");
     
                 if($result){
                     $otp = rand(100000,999999);

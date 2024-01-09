@@ -1,9 +1,8 @@
 <?php
-require('fpdf/fpdf.php');
 
-// Function to generate PDF for the selected users
 function generateUsersPDF($userSchedules)
 {
+    require('fpdf/fpdf.php');
     $pdf = new FPDF();
     $pdf->AddPage();
     $pdf->SetFont('Arial', 'B', 30);

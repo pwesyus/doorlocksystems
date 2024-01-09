@@ -11,6 +11,8 @@ if (!empty($_POST)) {
     // Fetch the form data
     $id = $_POST['id'];
     $name = $_POST['name'];
+    $subject = $_POST['subject'];
+    $section = $_POST['section'];
     $scheduledtimein = $_POST['scheduledtimein'];
     $scheduledtimeout = $_POST['scheduledtimeout'];
     $day = $_POST['day'];
@@ -39,9 +41,9 @@ if (!empty($_POST)) {
              (($day == "Saturday") ? 6 :
              (($day == "Sunday") ? 0 : 0))))));
 
-    $sql = "UPDATE schedule SET name=?, scheduledtimein=?, scheduledtimeout=?, day=?, room=?, dayno=? WHERE schedID=?";
+    $sql = "UPDATE schedule SET name=?, subject=?, section=?, scheduledtimein=?, scheduledtimeout=?, day=?, room=?, dayno=? WHERE schedID=?";
     $q = $pdo->prepare($sql);
-    $q->execute(array($name, $scheduledtimein, $scheduledtimeout, $day, $room, $dayno, $schedID));
+    $q->execute(array($name, $subject, $section, $scheduledtimein, $scheduledtimeout, $day, $room, $dayno, $schedID));
 
     // Display success message and redirect to the scheduletable.php page after updating
     echo '<script>alert("Schedule has been updated successfully.");</script>';
@@ -120,7 +122,7 @@ function checkForOverlap($schedID, $name, $scheduledtimein, $scheduledtimeout, $
                         <select id="name" name="name" required>
                             <?php
                             $pdo = new PDO('mysql:host=localhost;dbname=nodemcu_rfid_iot_projects', 'root', ''); // Update with your actual credentials
-                            $sqlFetchNames = "SELECT DISTINCT name FROM schedule";
+                            $sqlFetchNames = "SELECT DISTINCT name FROM table_the_iot_projects WHERE accesslevel = 'specific'";
                             $result = $pdo->query($sqlFetchNames);
                             if ($result->rowCount() > 0) {
                                 while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -132,6 +134,18 @@ function checkForOverlap($schedID, $name, $scheduledtimein, $scheduledtimeout, $
                             ?>
 
                         </select>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Subject</label>
+                    <div class="controls">
+                        <input name="subject" type="text" placeholder="" value="<?php echo $data['subject'];?>" required>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Section</label>
+                    <div class="controls">
+                        <input name="section" type="text" placeholder="" value="<?php echo $data['section'];?>" required>
                     </div>
                 </div>
 

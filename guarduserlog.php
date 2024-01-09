@@ -121,168 +121,7 @@ if (!$countResult) {
 
 $totalLogsToday = $countResult->fetch_assoc()['totalLogs'];
 
-    $filterDate = "";
-    $filterMonth = "";
-    $startDate = "";
-    $endDate = "";
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $filterDate = isset($_POST["filterDate"]) ? $_POST["filterDate"] : "";
-    $filterMonth = isset($_POST["filterMonth"]) ? $_POST["filterMonth"] : "";
-    $startDate = isset($_POST["startDate"]) ? $_POST["startDate"] : "";
-    $endDate = isset($_POST["endDate"]) ? $_POST["endDate"] : "";
-
-    $sql1 = "SELECT * FROM `userlogs` WHERE 1=1";
-
-    if (!empty($filterDate)) {
-        $sql1 .= " AND DATE(Timein) = '$filterDate'";
-    }
-
-    else if (!empty($filterMonth)) {
-        if ($filterMonth !== 'all') {
-            $month = date('m', strtotime($filterMonth));
-            $sql1 .= " AND MONTH(Timein) = '$month'";
-        }
-        // If 'All' is selected, do not add month-specific condition
-    }
-
-    else if (!empty($startDate) && !empty($endDate)) {
-        $sql1 .= " AND Timein BETWEEN '$startDate' AND '$endDate'";
-    }
-
-    $sql1 .= " ORDER BY Timein DESC";
-    $resultFiltered = $conn->query($sql1);
-    if (!$resultFiltered) {
-        die("Error: " . $conn->error);
-    }
-}
-
-
-// Check if the clear button is clicked
-if (isset($_POST['clear'])) {
-    // Reset the filter values
-    $filterDate = "";
-    $filterMonth = "";
-    $startDate = "";
-    $endDate = "";
-}
-
-// Check if the printPdf button is clicked
-if (isset($_POST['printPdf'])) {
-    // Include the FPDF library
-    require 'fpdf/fpdf.php';
-
-    // Create a new PDF instance
-    $pdf = new FPDF();
-    $pdf->AddPage();
-    $pdf->SetFont('Arial', 'B', 10); // Change font size for the title
-
-    // Add a title to the PDF (centered)
-    $pdf->Cell(0, 10, 'User Logs', 0, 1, 'C');
-
-    // Set header background color
-    $pdf->SetFillColor(0, 100, 0);
-    $pdf->SetTextColor(255, 255, 255);
-
-    // Add headers to the PDF table (centered)
-    $pdf->Cell(30, 10, 'RFID Number', 1, 0, 'C', true);  // Header cell with background color
-    $pdf->Cell(40, 10, 'Name', 1, 0, 'C', true);  
-    $pdf->Cell(45, 10, 'Subject', 1, 0, 'C', true);
-    $pdf->Cell(45, 10, 'Section', 1, 0, 'C', true);      // Header cell with background color
-    $pdf->Cell(45, 10, 'Time in', 1, 0, 'C', true);     // Header cell with background color
-    $pdf->Cell(45, 10, 'Time out', 1, 0, 'C', true);    // Header cell with background color
-    $pdf->Cell(30, 10, 'Status', 1, 1, 'C', true);      // Header cell with background color, move to the next line
-
-    // Reset text color
-    $pdf->SetTextColor(0, 0, 0);
-
-    // Prepare SQL query with filter conditions
-    $pdfSql = "SELECT RFIDNumber, name, subject, section, Timein, Timeout, status FROM userlogs WHERE 1=1";
-    $filenamePrefix = ''; // Initialize filename prefix
-
-    // Check filter conditions and update SQL query and filename prefix accordingly
-    if (!empty($filterDate)) {
-        $pdfSql .= " AND DATE(Timein) = '$filterDate'";
-        $filenamePrefix = $filterDate . '_';
-    } elseif (!empty($filterMonth)) {
-        if ($filterMonth !== 'all') {
-            $month = date('m', strtotime($filterMonth));
-            $pdfSql .= " AND MONTH(Timein) = '$month'";
-            $filenamePrefix = $filterMonth . '_';
-        }
-        $filenamePrefix = $filterMonth . '_';
-    } elseif (!empty($startDate) && !empty($endDate)) {
-        $pdfSql .= " AND Timein BETWEEN '$startDate' AND '$endDate'";
-        $filenamePrefix = $startDate . '_' . $endDate . '_';
-    } else {
-        // If no filters are applied, print today's user logs based on the current day
-        $currentDay = date('Y-m-d');
-        $pdfSql .= " AND DATE(Timein) = '$currentDay'";
-        $filenamePrefix = $currentDay;
-    }
-    $pdfSql .= " ORDER BY Timein DESC";
-    // Execute the query
-    $pdfResult = $conn->query($pdfSql);
-
-    // Iterate through the result and add rows to the PDF table
-    while ($pdfRow = $pdfResult->fetch_assoc()) {
-        $pdf->Cell(30, 10, $pdfRow["RFIDNumber"], 1, 0, 'C');
-        $pdf->Cell(40, 10, $pdfRow["name"], 1, 0, 'C');
-        $pdf->Cell(40, 10, $pdfRow["subject"], 1, 0, 'C');
-        $pdf->Cell(40, 10, $pdfRow["section"], 1, 0, 'C');
-        $pdf->Cell(40, 10, $pdfRow["room"], 1, 0, 'C');
-        $pdf->Cell(45, 10, $pdfRow["Timein"], 1, 0, 'C');
-        $pdf->Cell(45, 10, $pdfRow["Timeout"], 1, 0, 'C');
-
-        // Set text color and background color based on status
-        $status = strtoupper($pdfRow["status"]); // Convert to uppercase
-        switch ($status) {
-            case 'ABSENT':
-                $textColor = array(255, 0, 0); // Red text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-            case 'MASTERKEY':
-                $textColor = array(0, 0, 255); // Blue text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-            case 'LEAVE':
-                $textColor = array(255, 255, 0); // Yellow text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-            case 'LATE':
-                $textColor = array(255, 165, 0); // Orange text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-            case 'ON-TIME':
-                $textColor = array(0, 128, 0); // Green text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-            default:
-                $textColor = array(0, 0, 0); // Default: Black text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-        }
-
-        // Apply text color and background color to the current cell
-        $pdf->SetTextColor($textColor[0], $textColor[1], $textColor[2]);
-        $pdf->SetFillColor($backgroundColor[0], $backgroundColor[1], $backgroundColor[2]);
-
-        // Add status cell and move to the next line
-        $pdf->Cell(30, 10, $status, 1, 1, 'C', true);
-
-        // Reset text color and background color to default for the next row
-        $pdf->SetTextColor(0, 0, 0);
-        $pdf->SetFillColor(255, 255, 255);
-    }
-
-    // Output the PDF to the browser
-    $pdfFileName = $filenamePrefix . ' UserLogs.pdf';
-    $pdf->Output('D', $pdfFileName);
-
-    // Terminate script to prevent further output
-    exit();
-}
-include 'sidenav.php';
+include 'guardsidenav.php';
 
 
 
@@ -407,45 +246,12 @@ include 'sidenav.php';
         <p><?php echo date("F j, Y"); ?></p>
         <h1>Total Logs for Today: <?php echo $totalLogsToday; ?></h1>
         <form action="" method="post">
-        <button type="submit" name="showabsent" class="btn btn-danger" style="margin-left: 1100px; margin-top:-110px; font-weight: bold; width: 150px;">Show Absent</button>
-    </form>
+<form action="" method="post">
+            <button type="submit" name="showabsent" class="btn btn-danger" style="margin-left: 1100px; margin-top: -60px; font-weight: bold; width: 150px; display: inline-block; position: fixed;">Show Absent</button>
+        </form>
 
         <div class="container">
-            <form action="" method="post" class="row mb-3">
-                <div class="col">
-                    <label for="filterDate" style="margin-left: 10px;">Filter by Date:</label>
-                    <input type="date" name="filterDate" id="filterDate" style="width: 170px;margin-left: 10px; " class="form-control" onchange="clearDate()" value="<?php echo $filterDate; ?>">
-                </div>
-
-                <div class="col">
-                    <label for="filterMonth" style="margin-left: -20px;">Filter by Month:</label>
-                    <select name="filterMonth" style="width: 170px; margin-left: -20px" id="filterMonth" class="form-control" onchange="clearMonth()">
-                    <option value="" disabled <?php echo ($filterMonth === '') ? 'selected' : ''; ?>>Select Month</option>
-                    <option value="all" <?php echo ($filterMonth === 'all') ? 'selected' : ''; ?>>All</option>
-                    <?php
-                        $months = array('January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December');
-                        foreach ($months as $month) {
-                            echo '<option value="' . $month . '" ' . (($filterMonth === $month) ? 'selected' : '') . '>' . $month . '</option>';
-                        }
-                    ?>
-                </select>
-
-            </div>
-            <div class="col">
-                    <label for="startDate" style="margin-left: -60px;">Start Date:</label>
-                    <input type="date" style="width: 170px; margin-left: -60px" name="startDate" id="startDate" class="form-control" onchange="clearStart()" value="<?php echo $startDate; ?>">
-                </div>
-
-                <div class="col">
-                    <label for="endDate" style="margin-left: -100px;">End Date:</label>
-                    <input type="date" style="width: 170px;margin-left: -100px " name="endDate" id="endDate" class="form-control" onchange="clearStart()" value="<?php echo $endDate; ?>">
-                </div>
-                <div class="col">
-                    <button type="submit" class="btn btn-danger" style="margin-left: -120px; margin-top: 32px; ">Filter</button>
-                    <a href="?clear=true" class="btn btn-secondary" style="margin-top: 30px;">Clear</a>
-                    <button type="submit" name="printPdf" style=" margin-top: 30px;" class="btn btn-dark">Print</button>
-                </div>
-            </form>
+           
 
             <table id="userLogTable">
                 <tr>
@@ -553,6 +359,7 @@ $conn->close();
         document.getElementById('filterDate').value = '';
         document.getElementById('filterMonth').value = '';
     }
+
 </script>
 
 

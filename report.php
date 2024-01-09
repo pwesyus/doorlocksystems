@@ -2,6 +2,7 @@
 
 require('reportbyteacher.php');
 require('reportbyroom.php');
+require('reportbysection.php');
 require('reportbylistofuser.php');
 
 $pdo = new PDO('mysql:host=localhost;dbname=nodemcu_rfid_iot_projects', 'root', '');
@@ -20,6 +21,20 @@ function fetchTeachers($pdo)
 
     return $options;
 }
+function fetchSection($pdo)
+{
+    $sql = "SELECT DISTINCT section FROM schedule";
+    $stmt = $pdo->query($sql);
+    $sections = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $options = '<option value="">Select Section</option>';
+    foreach ($sections as $sectionItem) {
+        $options .= '<option value="' . $sectionItem['section'] . '">' . $sectionItem['section'] . '</option>';
+    }
+
+    return $options;
+}
+
 
 function fetchRooms($pdo)
 {
@@ -38,11 +53,11 @@ function fetchRooms($pdo)
 function fetchSchedules($pdo, $teacherName = null, $room = null, $day = null)
 {
     if ($day === 'all') {
-        $sql = "SELECT id, name, day, room, scheduledtimein, scheduledtimeout FROM schedule WHERE (name = ? OR room = ?)";
+        $sql = "SELECT id, name, day, subject, section, room, scheduledtimein, scheduledtimeout FROM schedule WHERE (name = ? OR room = ?)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$teacherName, $room]);
     } else {
-        $sql = "SELECT id, name, day, room, scheduledtimein, scheduledtimeout FROM schedule WHERE (name = ? OR room = ?) AND day = ?";
+        $sql = "SELECT id, name, day, room, subject, section, scheduledtimein, scheduledtimeout FROM schedule WHERE (name = ? OR room = ?) AND day = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$teacherName, $room, $day]);
     }
@@ -74,6 +89,37 @@ function fetchUserSchedules($pdo, $selectedAccessLevel)
         return [];
     }
 }
+function fetchTeacherSchedules($pdo, $teacherName)
+{
+    try {
+        $sql = "SELECT id, name, subject, section,scheduledtimein ,scheduledtimeout, day, room FROM schedule WHERE name = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$teacherName]);
+        $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $schedules;
+    } catch (PDOException $e) {
+        // Handle the exception, you can log or print the error for debugging
+        echo "Error fetching teacher schedules: " . $e->getMessage();
+        return [];
+    }
+}
+function fetchSectionSchedules($pdo, $sectionname)
+{
+    try {
+        $sql = "SELECT name, subject, scheduledtimein ,scheduledtimeout, day, room FROM schedule WHERE section = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$sectionname]);
+        $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $schedules;
+    } catch (PDOException $e) {
+        // Handle the exception, you can log or print the error for debugging
+        echo "Error fetching teacher schedules: " . $e->getMessage();
+        return [];
+    }
+}
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["teacherName"])) {
     $teacherName = $_POST["teacherName"];
@@ -81,7 +127,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["teacherName"])) {
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$teacherName]);
     $teacherId = $stmt->fetchColumn();
-    $schedules = fetchSchedules($pdo, $teacherName);
+    $schedules = fetchTeacherSchedules($pdo, $teacherName);
 
     if (!empty($schedules)) {
         $pdfFileName = generatePDF($teacherName, $teacherId, $schedules);
@@ -92,8 +138,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["teacherName"])) {
         readfile($pdfFileName);
         exit;
     } else {
-        echo "No schedules found for the selected teacher";
+        echo "<script>alert('No schedules found for the selected teacher');</script";
     }
+
 } else if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["room"])) {
     $room = $_POST["room"];
     $day = $_POST["day"];
@@ -122,9 +169,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["teacherName"])) {
         readfile($pdfFileName);
         exit;
     } else {
-        echo "No schedules found for the selected access level";
+        echo "<script>alert('No schedules found for the selected access level');</script>";
+    }
+} else if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["sectionname"])) {
+    $section = $_POST["sectionname"];
+    $schedules = fetchSectionSchedules($pdo, $section);  // Fix here
+
+    if (!empty($schedules)) {
+        $pdfFileName = generateSectionPDF($section, $schedules);
+
+        header('Content-Type: application/pdf');
+        header('Content-Transfer-Encoding: Binary');
+        header('Content-Disposition: inline; filename="' . $pdfFileName . '"');
+        readfile($pdfFileName);
+        exit;
+    } else {
+        echo "No schedules found for the selected section";
     }
 }
+
 
 include('sidenav.php');
 
@@ -178,10 +241,28 @@ include('sidenav.php');
 <body>
 
     <div id="content">
+        <p style="font-weight: BOLD; font-size: 30px; margin-top: -25px; margin-left:300px">REPORT</p>
+          <form action="report.php" method="post" id="userScheduleForm" target="_blank">
+            <div class="form-row">
+                <div class="col-md-6">
+                    <h3>Generate list of users</h3>
+                    <select name="selectedAccessLevel" id="accessLevelSelect" class="form-control">
+                        <option value="" selected disabled>Select Users</option>
+                        <option value="all">All Users</option>
+                        <option value="masterkey">MasterKey Users</option>
+                        <option value="specific">Specific Users</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <input type="hidden" name="selectedAccessLevel" id="selectedAccessLevel" value=""><br><br>
+                    <button type="submit" name="printUserScheduleBtn" class="btn btn-dark btn-dark-green"style="margin-top: -7px;">Print List of User</button><br><br>
+                </div>
+            </div>
+        </form>
         <form action="report.php" method="post" id="scheduleForm" target="_blank">
             <div class="form-row">
                 <div class="col-md-6">
-                    <h3>Generate Teacher's schedule</h3>
+                    <h3>Generate teacher's schedule</h3>
                     <select name="teacherName" id="teacherSelect" class="form-control">
                         <?php echo fetchTeachers($pdo); ?>
                     </select>
@@ -207,7 +288,11 @@ include('sidenav.php');
                 <option value="all">All Days</option>
                 <option value="Monday">Monday</option>
                 <option value="Tuesday">Tuesday</option>
-                <!-- Add more days as needed -->
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
             </select>
         </div>
         <div class="col-md-6">
@@ -218,68 +303,78 @@ include('sidenav.php');
     </div>
 </form>
 
-
-        <form action="report.php" method="post" id="userScheduleForm" target="_blank">
+       <form action="report.php" method="post" id="sectionform" target="_blank">
             <div class="form-row">
                 <div class="col-md-6">
-                    <h3>Generate list of users</h3>
-                    <select name="selectedAccessLevel" id="accessLevelSelect" class="form-control">
-                        <option value="" selected disabled>Select Users</option>
-                        <option value="all">All Users</option>
-                        <option value="masterkey">MasterKey Users</option>
-                        <option value="specific">Specific Users</option>
+                    <h3>Generate section schedule</h3>
+                    <select name="sectionname" id="sectionselect" class="form-control">
+                        <?php echo fetchSection($pdo); ?>
                     </select>
                 </div>
                 <div class="col-md-6">
-                    <input type="hidden" name="selectedAccessLevel" id="selectedAccessLevel" value=""><br><br>
-                    <button type="submit" name="printUserScheduleBtn" class="btn btn-dark btn-dark-green"style="margin-top: -7px;">Print List of User</button><br><br>
+                    <input type="hidden" name="sectionname" id="sectionname" value=""><br><br>
+                    <button type="submit" name="printScheduleBtn" class="btn btn-dark btn-dark-green"style="margin-top: -7px;">Print Section Schedule</button><br><br>
                 </div>
             </div>
         </form>
+        <a href="reportattendance.php" class="btn btn-dark btn-dark-green"style="margin-top: 8px; font-weight: BOLD; font-size: 22px; margin-left: 800px;">NEXT</a>
+
+      
     </div>
-
-    <script>
-        $(document).ready(function () {
-            $('#scheduleForm').submit(function () {
-                var selectedTeacher = $('#teacherSelect').val();
-                if (selectedTeacher) {
-                    $('#teacherName').val(selectedTeacher);
-                } else {
-                    alert('Please select a teacher before generating the PDF.');
-                    return false;
-                }
-            });
-
-             $('#roomScheduleForm').submit(function () {
-                var selectedRoom = $('#roomSelect').val();
-                var selectedDay = $('#daySelect').val();
-
-                if (selectedRoom) {
-                    $('#room').val(selectedRoom);
-
-                    if (selectedDay && selectedDay !== 'all') {
-                        $('#day').val(selectedDay);
-                    } else {
-                        // If "All" is selected or no day is selected, set day to 'all'
-                        $('#day').val('all');
-                    }
-                } else {
-                    alert('Please select a room before generating the PDF.');
-                    return false;
-                }
-            });
-
-            $('#userScheduleForm').submit(function () {
-                var selectedAccessLevel = $('#accessLevelSelect').val();
-                if (selectedAccessLevel) {
-                    $('#selectedAccessLevel').val(selectedAccessLevel);
-                } else {
-                    alert('Please select an access level before generating the PDF.');
-                    return false;
-                }
-            });
+<script>
+    $(document).ready(function () {
+        $('#sectionform').submit(function () {
+            var selectedSection = $('#sectionselect').val();
+            if (selectedSection) {
+                $('#sectionname').val(selectedSection);
+            } else {
+                alert('Please select a section before generating the PDF.');
+                return false;
+            }
         });
-    </script>
+
+        $('#scheduleForm').submit(function () {
+            var selectedTeacher = $('#teacherSelect').val();
+            if (selectedTeacher) {
+                $('#teacherName').val(selectedTeacher);
+            } else {
+                alert('Please select a teacher before generating the PDF.');
+                return false;
+            }
+        });
+
+        $('#roomScheduleForm').submit(function () {
+            var selectedRoom = $('#roomSelect').val();
+            var selectedDay = $('#daySelect').val();
+
+            if (selectedRoom) {
+                $('#room').val(selectedRoom);
+
+                if (selectedDay) {
+                    // If a day is selected, set day value
+                    $('#day').val(selectedDay);
+                } else {
+                    alert('Please select a day before generating the PDF.');
+                    return false;
+                }
+            } else {
+                alert('Please select a room and day before generating the PDF.');
+                return false;
+            }
+        });
+
+        $('#userScheduleForm').submit(function () {
+            var selectedAccessLevel = $('#accessLevelSelect').val();
+            if (selectedAccessLevel) {
+                $('#selectedAccessLevel').val(selectedAccessLevel);
+            } else {
+                alert('Please select an access level before generating the PDF.');
+                return false;
+            }
+        });
+    });
+</script>
+
 </body>
 
 </html>
