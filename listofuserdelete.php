@@ -43,7 +43,7 @@ if (!empty($_POST)) {
     $q = $pdo->prepare($sql);
     $q->execute([$id]);
     echo "<script>alert('Schedule removed successfully.'); 
-    window.location.href='scheduletable.php';</script>";
+    window.location.href='listofuser.php';</script>";
         exit;
 
     header("Location: listofuser.php");

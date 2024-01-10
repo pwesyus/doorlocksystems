@@ -145,7 +145,7 @@ if (!empty($_POST)) {
                             include 'database.php';
 
                             // Fetch the names from your schedule table
-                            $sql = "SELECT DISTINCT name FROM schedule"; // Assuming 'schedule' is the name of your table
+                            $sql = "SELECT DISTINCT name FROM schedule WHERE id = ''"; // Assuming 'schedule' is the name of your table
                             $result = mysqli_query($conn, $sql);
 
                             if ($result) {

@@ -85,7 +85,7 @@ $totalPages = ceil($totalRows / $rowsPerPage);
         }
 
         .btn.btn-danger {
-            margin-right: -5px;
+            margin-right: -40px;
         }
 
         table {
@@ -169,7 +169,7 @@ $totalPages = ceil($totalRows / $rowsPerPage);
                     echo '<td>' . $row['mobile'] . '</td>';
                     echo '<td><a class="btn btn-info" style="text-decoration: none;" href="listofuseredit.php?id=' . $row['id'] . '">Edit</a>';
                     echo ' ';
-                    echo '<a class="btn btn-danger" style="text-decoration: none;" href="listofuserdelete.php?id=' . $row['id'] . '">Delete</a>';
+                    echo '<a class="btn btn-danger" style="text-decoration: none;" href="listofuserdelete.php?id=' . $row['id'] . '">Archive</a>';
                     echo '</td>';
                     echo '</tr>';
                 }

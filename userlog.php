@@ -24,6 +24,7 @@ if (isset($_POST['showabsent'])) {
     // Check if there are no schedules found
     if (empty($schedules)) {
         echo '<script>alert("No schedules found for today.");</script>';
+        echo '<script>setTimeout(function() { window.location = "userlog.php"; }, 100);</script>';
     } else {
 
         // Retrieve all user logs for today

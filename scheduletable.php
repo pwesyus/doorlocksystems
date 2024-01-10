@@ -237,7 +237,7 @@ if ($result === false) {
 
                         echo '<td class="text-center">';
                         echo '<a class="btn btn-info" href="scheduleedit.php?schedID=' . $row['schedID'] . '">Edit</a>';
-                        echo '<a class="btn btn-danger" href="scheduledelete.php?schedID=' . $row['schedID'] . '" onclick="return confirm(\'Are you sure you want to delete this schedule?\')">Delete</a>';
+                        echo '<a class="btn btn-danger" href="scheduledelete.php?schedID=' . $row['schedID'] . '" onclick="return confirm(\'Are you sure you want to delete this schedule?\')">Archive</a>';
                         echo '</td>';
 
                         echo '</tr>';

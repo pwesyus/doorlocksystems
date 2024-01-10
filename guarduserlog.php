@@ -89,7 +89,7 @@ if (isset($_POST['showabsent'])) {
         </script>';
 
         // Redirect to userlog.php after processing schedules
-        echo '<script>setTimeout(function() { window.location = "userlog.php"; }, 100);</script>';
+        echo '<script>setTimeout(function() { window.location = "guarduserlog.php"; }, 100);</script>';
     }
 
     // Close the database connection when done
@@ -247,9 +247,8 @@ include 'guardsidenav.php';
         <h1>Total Logs for Today: <?php echo $totalLogsToday; ?></h1>
         <form action="" method="post">
 <form action="" method="post">
-            <button type="submit" name="showabsent" class="btn btn-danger" style="margin-left: 1100px; margin-top: -60px; font-weight: bold; width: 150px; display: inline-block; position: fixed;">Show Absent</button>
-        </form>
-
+    <button type="submit" name="showabsent" class="btn btn-danger" style="margin-left: 1100px; margin-top: -110px; font-weight: bold; width: 150px; display: inline-block;">Show Absent</button>
+</form>
         <div class="container">
            
 
