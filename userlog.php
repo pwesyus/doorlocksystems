@@ -176,7 +176,7 @@ if (isset($_POST['printPdf'])) {
     // Create a new PDF instance
     $pdf = new FPDF();
     $pdf->AddPage();
-    $pdf->SetFont('Arial', 'B', 10); // Change font size for the title
+    $pdf->SetFont('Arial', 'B', 20); // Change font size for the title
 
     // Add a title to the PDF (centered)
     $pdf->Cell(0, 10, 'User Logs', 0, 1, 'C');
@@ -184,21 +184,24 @@ if (isset($_POST['printPdf'])) {
     // Set header background color
     $pdf->SetFillColor(0, 100, 0);
     $pdf->SetTextColor(255, 255, 255);
+    $pdf->SetFont('Arial', 'B', 8);
 
     // Add headers to the PDF table (centered)
-    $pdf->Cell(30, 10, 'RFID Number', 1, 0, 'C', true);  // Header cell with background color
-    $pdf->Cell(40, 10, 'Name', 1, 0, 'C', true);  
-    $pdf->Cell(45, 10, 'Subject', 1, 0, 'C', true);
-    $pdf->Cell(45, 10, 'Section', 1, 0, 'C', true);      // Header cell with background color
-    $pdf->Cell(45, 10, 'Time in', 1, 0, 'C', true);     // Header cell with background color
-    $pdf->Cell(45, 10, 'Time out', 1, 0, 'C', true);    // Header cell with background color
-    $pdf->Cell(30, 10, 'Status', 1, 1, 'C', true);      // Header cell with background color, move to the next line
+    $pdf->Cell(25, 10, 'RFID Number', 1, 0, 'C', true);  // Header cell with background color
+    $pdf->Cell(25, 10, 'Name', 1, 0, 'C', true);  
+    $pdf->Cell(15, 10, 'Subject', 1, 0, 'C', true);
+    $pdf->Cell(15, 10, 'Section', 1, 0, 'C', true);
+    $pdf->Cell(15, 10, 'Room', 1, 0, 'C', true);  // Header cell with background color
+    $pdf->Cell(28, 10, 'Time in', 1, 0, 'C', true);     // Header cell with background color
+    $pdf->Cell(28, 10, 'Time out', 1, 0, 'C', true);
+    $pdf->Cell(20, 10, 'Status Timein', 1, 0, 'C', true);  
+    $pdf->Cell(20, 10, 'Status Timeout', 1, 1, 'C', true);
 
     // Reset text color
     $pdf->SetTextColor(0, 0, 0);
 
     // Prepare SQL query with filter conditions
-    $pdfSql = "SELECT RFIDNumber, name, subject, section, Timein, Timeout, status FROM userlogs WHERE 1=1";
+    $pdfSql = "SELECT RFIDNumber, name, subject, section, Timein, Timeout, status, room, statustimeout FROM userlogs WHERE 1=1";
     $filenamePrefix = ''; // Initialize filename prefix
 
     // Check filter conditions and update SQL query and filename prefix accordingly
@@ -227,49 +230,17 @@ if (isset($_POST['printPdf'])) {
 
     // Iterate through the result and add rows to the PDF table
     while ($pdfRow = $pdfResult->fetch_assoc()) {
-        $pdf->Cell(30, 10, $pdfRow["RFIDNumber"], 1, 0, 'C');
-        $pdf->Cell(40, 10, $pdfRow["name"], 1, 0, 'C');
-        $pdf->Cell(40, 10, $pdfRow["subject"], 1, 0, 'C');
-        $pdf->Cell(40, 10, $pdfRow["section"], 1, 0, 'C');
-        $pdf->Cell(40, 10, $pdfRow["room"], 1, 0, 'C');
-        $pdf->Cell(45, 10, $pdfRow["Timein"], 1, 0, 'C');
-        $pdf->Cell(45, 10, $pdfRow["Timeout"], 1, 0, 'C');
+        $pdf->Cell(25, 10, $pdfRow["RFIDNumber"], 1, 0, 'C');
+        $pdf->Cell(25, 10, $pdfRow["name"], 1, 0, 'C');
+        $pdf->Cell(15, 10, $pdfRow["subject"], 1, 0, 'C');
+        $pdf->Cell(15, 10, $pdfRow["section"], 1, 0, 'C');
+        $pdf->Cell(15, 10, $pdfRow["room"], 1, 0, 'C');
+        $pdf->Cell(28, 10, $pdfRow["Timein"], 1, 0, 'C');
+        $pdf->Cell(28, 10, $pdfRow["Timeout"], 1, 0, 'C');
+        $pdf->Cell(20, 10, $pdfRow["status"], 1, 0, 'C');
+        $pdf->Cell(20, 10, $pdfRow["statustimeout"], 1, 1, 'C');
 
-        // Set text color and background color based on status
-        $status = strtoupper($pdfRow["status"]); // Convert to uppercase
-        switch ($status) {
-            case 'ABSENT':
-                $textColor = array(255, 0, 0); // Red text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-            case 'MASTERKEY':
-                $textColor = array(0, 0, 255); // Blue text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-            case 'LEAVE':
-                $textColor = array(255, 255, 0); // Yellow text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-            case 'LATE':
-                $textColor = array(255, 165, 0); // Orange text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-            case 'ON-TIME':
-                $textColor = array(0, 128, 0); // Green text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-            default:
-                $textColor = array(0, 0, 0); // Default: Black text
-                $backgroundColor = array(255, 255, 255); // White background
-                break;
-        }
-
-        // Apply text color and background color to the current cell
-        $pdf->SetTextColor($textColor[0], $textColor[1], $textColor[2]);
-        $pdf->SetFillColor($backgroundColor[0], $backgroundColor[1], $backgroundColor[2]);
-
-        // Add status cell and move to the next line
-        $pdf->Cell(30, 10, $status, 1, 1, 'C', true);
+        
 
         // Reset text color and background color to default for the next row
         $pdf->SetTextColor(0, 0, 0);
@@ -311,7 +282,7 @@ include 'sidenav.php';
         }
 
         table {
-            width: 90%;
+            width: 93%;
             margin-bottom: 50px;
         }
 
