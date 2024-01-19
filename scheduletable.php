@@ -75,9 +75,20 @@ if ($result === false) {
                     exit(0);
                 }
 
+           $dayno = ($day == "Monday") ? 1 :
+             (($day == "Tuesday") ? 2 :
+             (($day == "Wednesday") ? 3 :
+             (($day == "Thursday") ? 4 :
+             (($day == "Friday") ? 5 :
+             (($day == "Saturday") ? 6 :
+             (($day == "Sunday") ? 0 : 0))))));
+
+// No need for the else block if you've already set $dayno to 0 initially.
+
+                
                 // If no overlap, insert the schedule
-                $studentQuery = "INSERT INTO schedule (name, scheduledtimein, scheduledtimeout, section, room, subject,day) 
-                                VALUES ('$name','$scheduledtimein','$scheduledtimeout', '$section','$room','$subject','$day')";
+                $studentQuery = "INSERT INTO schedule (name, scheduledtimein, scheduledtimeout, section, room, subject,day, dayno) 
+                                VALUES ('$name','$scheduledtimein','$scheduledtimeout', '$section','$room','$subject','$day','$dayno')";
                 $result = mysqli_query($conn, $studentQuery);
 
                 $msg = true;
